@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>网页正文提取演示系统</title>
+	<style type="text/css">
+	#allcontent {
+		font-family: Georgia, "Times New Roman", Times, serif;
+		width: 800px;
+	}
+	#title {
+		font-size: 30px;
+	}
+	.des {
+		font-size: 14px;
+		font-style: bold;
+		color: blue;
+	}
+	#text, #lf {
+		text-align: left;
+	}
+	#gap {
+		border-style: outset;
+		border-top-width: 10px;
+		border-top-color: gray;
+	}
+	#copyright {
+		margin-top: 60px;
+		clear: both;
+		font-size: 12px;
+	}
+	</style>
+</head>
+
+<body>
+	<center>
+		<div id="allcontent">
+		<div id="title"><p>网页正文提取演示</p></div>
+        <form method="post" action="demo.php">
+						<span class="des">网址：</span><input type="text" name="url" size="60" />
+						<input type="submit" name="submit" value="提取" />
+					  </form>
+
+
+        <div id="content"></div>
+		</div>
+	</center>
+</body>
+</html>
