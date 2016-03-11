@@ -15,11 +15,6 @@ DB = 'localhost'
 Port = 27017
 # mongodb的集合名称Collection
 Collections = 'tender_spider'
-Handlers = [
-    (r"/reverse/text/(\w+)/width/(\d+)", ReverseHandler),
-    (r"/", IndexHandler),
-    (r"/parsehtml", ParseHtmls)
-]
 Settings = dict(
     template_path=os.path.join(os.path.dirname(__file__), "templates"),
     static_path=os.path.join(os.path.dirname(__file__), "static"),

@@ -1,7 +1,7 @@
 from app import *
-
-handlers = [
+from Handler import ErrorHandler
+Handlers = [
     (r"/reverse/text/(\w+)/width/(\d+)", ReverseHandler),
-    (r"/", IndexHandler),
-    (r"/parsehtml", ParseHtmls)
+    (r"/getuserinfo", IndexHandler),
+    (r".*", ErrorHandler),
 ]
