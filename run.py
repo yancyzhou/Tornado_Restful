@@ -1,12 +1,14 @@
 # -*- encoding:utf-8 -*-
 import motor
-from tornado import httpserver, ioloop, options as Options, web
+from tornado import httpserver, ioloop, options as Options, web, platform
 from config import *
 from utils import *
 from tornado.options import define, options
 
-
 define("port", default=Webservers_port, help="run on the given port", type=int)
+# from tornado.netutil import Resolver
+#
+# Resolver.configure('platform.caresresolver.CaresResolver')
 
 
 class Application(tornado.web.Application):

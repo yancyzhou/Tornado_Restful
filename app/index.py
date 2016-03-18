@@ -15,49 +15,61 @@ from urllib import unquote
 from Handler import Handler
 
 
-class ReverseHandler(tornado.web.RequestHandler):
-    def head(self, frob, frob_id):
-        # frob = retrieve_from_db(frob_id)
-        print int(frob_id)
-        if int(frob_id) > 20:
-            self.set_status(200)
-        else:
-            self.set_status(2001)
-
-    def write_error(self, status_code, **kwargs):
-        self.write("Gosh darnit, user! You caused a %d error." % status_code)
-
-    def get(self, input, ints):
-
-        temp = {"data": input[::-1]}
-
-        self.write(temp)
-
-
-class BookModule(tornado.web.UIModule):
-    def render(self, book):
-        return self.render_string(
-            "modules/book.html",
-            book=book,
-        )
-
-    def css_files(self):
-        return "/static/css/recommended.css"
-
-    def javascript_files(self):
-        return "/static/js/recommended.js"
+# class ReverseHandler(tornado.web.RequestHandler):
+#     def head(self, frob, frob_id):
+#         # frob = retrieve_from_db(frob_id)
+#         print int(frob_id)
+#         if int(frob_id) > 20:
+#             self.set_status(200)
+#         else:
+#             self.set_status(2001)
+#
+#     def write_error(self, status_code, **kwargs):
+#         self.write("Gosh darnit, user! You caused a %d error." % status_code)
+#
+#     def get(self, input, ints):
+#
+#         temp = {"data": input[::-1]}
+#
+#         self.write(temp)
+#
+#
+# class BookModule(tornado.web.UIModule):
+#     def render(self, book):
+#         return self.render_string(
+#             "modules/book.html",
+#             book=book,
+#         )
+#
+#     def css_files(self):
+#         return "/static/css/recommended.css"
+#
+#     def javascript_files(self):
+#         return "/static/js/recommended.js"
 
 
 class StartSpider(Handler):
     """开始抓取数据接口"""
-    def __init__(self, uid, callback=None):
-        super(StartSpider, self).__init__()
-        self.uid = uid
 
-    def get(self):
+    @tornado.web.asynchronous
+    @gen.coroutine
+    def post(self):
+        fid = self.get_argument('fid')
+        if type(fid) is int:
+            fid = str(fid)
+        elif type(fid) is str:
+            fid = fid
+        page = str(self.get_argument('page', 1))
+        callback = self.get_argument('callback', None)
         client = tornado.httpclient.AsyncHTTPClient()
-        url = 'http://m.weibo.cn/page/json?containerid=%s_-_WEIBO_SECOND_PROFILE_WEIBO' % self.uid
+        url = 'http://m.weibo.cn/page/json?containerid=%s_-_WEIBO_SECOND_PROFILE_WEIBO&page=%s&count=200' % (fid, page)
         response = yield tornado.gen.Task(client.fetch, url)
+        result = json.loads(response.body)
+        if callback:
+            responses = yield tornado.gen.Task(client.fetch, callback)
+            self.writejson(json.loads(responses.body))
+        else:
+            self.writejson(result)
 
 
 class IndexHandler(Handler):
@@ -84,6 +96,6 @@ class IndexHandler(Handler):
             inforesponse = yield tornado.gen.Task(client.fetch, url)
             # print inforesponse.body
             userinfo = json.loads(inforesponse.body)['cards'][0]['card_group'][0]['mblog']['user']
-            self.writejson({'data': userinfo})
+            self.writejson({'data': userinfo, 'fid': fid, 'code': '000'})
         except IndexError, e:
-            self.writejson({'data': result})
+            self.writejson({'data': result, 'code': '1'})
