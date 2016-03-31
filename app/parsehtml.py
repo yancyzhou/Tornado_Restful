@@ -127,7 +127,7 @@ class ParseHtml():
         if money is not '':
             return money
         else:
-            pattern = re.compile('(([1-9]{1})(\d{0,2})((,\d{3})+)(\.\d{1,10}))|(([1-9]{1})(\d{1,10})(\.\d{1,10}))')
+            pattern = re.compile('(([1-9]{1})(\d{0,2})((,\d{3})+)(\.\d{1,10}))|(([1-9]{1})(\d{1,10})(\.\d{1,10}))|(\d{5,8})')
             search = pattern.search(param1)
             if search:
                 mon = search.group()
@@ -354,12 +354,12 @@ class ParseHtml():
                 num_2 = ''
                 # 抽取十位数字类型注册号
                 pattern = re.compile('[0-9]{10}')
-                search = pattern.search(self.data)
+                search = pattern.search(param1)
                 if search:
                     tem = search.group()
                     num_1 = str(tem)
                 pattern = re.compile('[0-9]{11}')
-                search = pattern.search(self.data)
+                search = pattern.search(param1)
                 if search:
                     tem = search.group()
                     num_2 = str(tem)
@@ -396,35 +396,30 @@ class ParseHtml():
         pattern = re.compile('(2[0-9]{3}年([0-9]{1,2})月([0-9]{1,2})日)|(2[0-9]{3}-([0-9]{1,2})-([0-9]{1,2}))|(2[0-9]{3}/([0-9]{1,2})/([0-9]{1,2}))|(2[0-9]{3}\.([0-9]{1,2})\.([0-9]{1,2}))')
         search = pattern.search(data)
         if search:
-            dates = search.group()
-            dates = str(dates)
+            Dates = search.group()
+            Dates = str(Dates)
             # 解决带有空格的日期数据抽取问题
-            if dates is '':
-                pattern_1 = re.compile('(2[0-9]{3}[\s]+年[\s]+([0-9]{1,2})[\s]+月[\s]+([0-9]{1,2})[\s]+日)')
-                search_1 = pattern_1.search(data)
-                if search_1:
-                    dates = str(dates)
-                    dates = dates.replace("年", "-")
-                    dates = dates.replace("月", "-")
-                    dates = dates.replace("日", " ")
-                    return dates
-                else:
+            if Dates is '':
                     return ''
             else:
-                dates = dates.replace("年", "-")
-                dates = dates.replace("月", "-")
-                dates = dates.replace("日", " ")
-                return dates
+                return Dates
         else:
-            return ''
+            pattern = re.compile('(2[0-9]{3}([\s]+)年([\s]+)([0-9]{1,2})([\s]+)月([\s]+)([0-9]{1,2})([\s]+)日)')
+            search = pattern.search(data)
+            if search:
+                Dates = search.group()
+                Dates = str(Dates)
+                return Dates
+            else:
+                return ''
 
-    # 返回结果
+    # 时间返回结果
     def re_date(self):
         de = ''
         for tt in self.date:
             data = self.location(tt, 1)
-
             de = self.parse_date(data)
+            print de
             if de is not '':
                 break
             else:
@@ -448,13 +443,15 @@ class GetKeywords(Handler):
         cons = self.get_argument('db')
         res = []
         # mongodb 模糊查询
-        n = self.application.db.resultcollection.find({'project': cons}).limit(100)
+        n = self.dbs.resultcollection.find({'project': cons}).limit(100)
         for item in (yield n.to_list(100)):
-            if item['url'] in ['http://zfcg.linyi.gov.cn/sdgp2014/site/read.jsp?colcode=0304&id=868', 'http://www.pyjsgc.com/show.asp?id=10438']:
+            if item['url'] in ['http://zfcg.linyi.gov.cn/sdgp2014/site/read.jsp?colcode=0304&id=868', 'http://www.pyjsgc.com/show.asp?id=10438', 'http://ggzy.yzcity.gov.cn/yzweb/infodetail/?infoid=cb9273b1-9d04-4c49-9fa3-8bac9605b527&categoryNum=004001004001']:
                 continue
             if item['result']['content'] is not None:
-
-                result = ParseHtml(item['result']['content'].encode('utf-8'))
+                reM = re.compile(r'<[\s\S]*?>+', re.I)
+                pa = reM.sub(' ', item['result']['content'].encode('utf-8'))
+                pa = pa.replace('\n', '')
+                result = ParseHtml(pa)
                 dic = result.get_result()
                 dic['项目名称'] = item['result']['title'].encode('utf-8')
                 dic['url'] = item['url']

@@ -8,5 +8,6 @@ Handlers = [
     # (r'/auth/logout', LogoutHandler),
     (r'/getkeywords', GetKeywords),
     (r'/weiboapi/startspider', StartSpider),
+    (r'/weiboapi/getlongtext', LongText),
     (r".*", ErrorHandler),
 ]

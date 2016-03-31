@@ -13,7 +13,7 @@ import json
 from tornado import gen
 from urllib import unquote
 from Handler import Handler
-
+from bs4 import BeautifulSoup
 
 # class ReverseHandler(tornado.web.RequestHandler):
 #     def head(self, frob, frob_id):
@@ -70,6 +70,35 @@ class StartSpider(Handler):
             self.writejson(json.loads(responses.body))
         else:
             self.writejson(result)
+
+
+class LongText(Handler):
+    """Get Long Text"""
+
+    @tornado.web.asynchronous
+    @gen.coroutine
+    def post(self):
+        uid = self.get_argument('uid')
+        if type(uid) is int:
+            uid = str(uid)
+        elif type(uid) is str:
+            uid = uid
+        bid = self.get_argument('bid')
+        try:
+            client = tornado.httpclient.AsyncHTTPClient()
+            url = 'http://m.weibo.cn/%s/%s' % (uid, bid)
+            response = yield tornado.gen.Task(client.fetch, url)
+            html = BeautifulSoup(response.body, "lxml")
+            text = html.find('div', class_='weibo-text')
+            if text is not None:
+                strtext = map(lambda x: str(x.encode('utf-8')), text.contents)
+                longtext = ''.join(strtext)
+                data = {'data': longtext, 'code': '000'}
+            else:
+                data = {'data': '', 'code': '2'}
+            self.writejson(data)
+        except:
+            self.writejson({'data': 'system error', 'code': '1'})
 
 
 class IndexHandler(Handler):

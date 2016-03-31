@@ -41,6 +41,9 @@ class ApiHTTPError(Exception):
 
 
 class Handler(RequestHandler):
+    @property
+    def dbs(self):
+        return self.application.db
 
     def writejson(self, obj):
         self.write(obj), 200, {'Content-Type': 'application/json;'}
