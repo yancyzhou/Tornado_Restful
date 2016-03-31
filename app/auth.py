@@ -142,7 +142,7 @@ def _auth_return_future(f):
     return wrapper
 
 
-[docs]class OpenIdMixin(object):
+class OpenIdMixin(object):
     """Abstract implementation of OpenID and Attribute Exchange.
 
     Class attributes:
@@ -150,7 +150,7 @@ def _auth_return_future(f):
     * ``_OPENID_ENDPOINT``: the identity provider's URI.
     """
     @return_future
-[docs]    def authenticate_redirect(self, callback_uri=None,
+    def authenticate_redirect(self, callback_uri=None,
                               ax_attrs=["name", "email", "language", "username"],
                               callback=None):
         """Redirects to the authentication URL for this service.
@@ -174,9 +174,8 @@ def _auth_return_future(f):
         self.redirect(self._OPENID_ENDPOINT + "?" + urllib_parse.urlencode(args))
         callback()
 
-
     @_auth_return_future
-[docs]    def get_authenticated_user(self, callback, http_client=None):
+    def get_authenticated_user(self, callback, http_client=None):
         """Fetches the authenticated user data upon redirect.
 
         This method should be called by the handler that receives the
@@ -196,7 +195,6 @@ def _auth_return_future(f):
         http_client.fetch(url, functools.partial(
             self._on_authentication_verified, callback),
             method="POST", body=urllib_parse.urlencode(args))
-
 
     def _openid_args(self, callback_uri, ax_attrs=[], oauth_scope=None):
         url = urlparse.urljoin(self.request.full_url(), callback_uri)
@@ -306,7 +304,7 @@ def _auth_return_future(f):
             user["claimed_id"] = claimed_id
         future.set_result(user)
 
-[docs]    def get_auth_http_client(self):
+    def get_auth_http_client(self):
         """Returns the `.AsyncHTTPClient` instance to be used for auth requests.
 
         May be overridden by subclasses to use an HTTP client other than
@@ -315,8 +313,7 @@ def _auth_return_future(f):
         return httpclient.AsyncHTTPClient()
 
 
-
-[docs]class OAuthMixin(object):
+class OAuthMixin(object):
     """Abstract implementation of OAuth 1.0 and 1.0a.
 
     See `TwitterMixin` below for an example implementation.
@@ -333,7 +330,7 @@ def _auth_return_future(f):
     `_oauth_consumer_token` methods.
     """
     @return_future
-[docs]    def authorize_redirect(self, callback_uri=None, extra_params=None,
+    def authorize_redirect(self, callback_uri=None, extra_params=None,
                            http_client=None, callback=None):
         """Redirects the user to obtain OAuth authorization for this service.
 
@@ -379,9 +376,8 @@ def _auth_return_future(f):
                     callback_uri,
                     callback))
 
-
     @_auth_return_future
-[docs]    def get_authenticated_user(self, callback, http_client=None):
+    def get_authenticated_user(self, callback, http_client=None):
         """Gets the OAuth authorized user and access token.
 
         This method should be called from the handler for your
@@ -413,7 +409,6 @@ def _auth_return_future(f):
             http_client = self.get_auth_http_client()
         http_client.fetch(self._oauth_access_token_url(token),
                           functools.partial(self._on_access_token, callback))
-
 
     def _oauth_request_token_url(self, callback_uri=None, extra_params=None):
         consumer_token = self._oauth_consumer_token()
@@ -492,7 +487,7 @@ def _auth_return_future(f):
         self._oauth_get_user_future(access_token).add_done_callback(
             functools.partial(self._on_oauth_get_user, access_token, future))
 
-[docs]    def _oauth_consumer_token(self):
+    def _oauth_consumer_token(self):
         """Subclasses must override this to return their OAuth consumer keys.
 
         The return value should be a `dict` with keys ``key`` and ``secret``.
@@ -501,7 +496,7 @@ def _auth_return_future(f):
 
 
     @return_future
-[docs]    def _oauth_get_user_future(self, access_token, callback):
+    def _oauth_get_user_future(self, access_token, callback):
         """Subclasses must override this to get basic information about the
         user.
 
@@ -563,7 +558,7 @@ def _auth_return_future(f):
         base_args["oauth_signature"] = escape.to_basestring(signature)
         return base_args
 
-[docs]    def get_auth_http_client(self):
+    def get_auth_http_client(self):
         """Returns the `.AsyncHTTPClient` instance to be used for auth requests.
 
         May be overridden by subclasses to use an HTTP client other than
@@ -573,7 +568,7 @@ def _auth_return_future(f):
 
 
 
-[docs]class OAuth2Mixin(object):
+class OAuth2Mixin(object):
     """Abstract implementation of OAuth 2.0.
 
     See `FacebookGraphMixin` or `GoogleOAuth2Mixin` below for example
@@ -585,7 +580,7 @@ def _auth_return_future(f):
     * ``_OAUTH_ACCESS_TOKEN_URL``:  The service's access token url.
     """
     @return_future
-[docs]    def authorize_redirect(self, redirect_uri=None, client_id=None,
+    def authorize_redirect(self, redirect_uri=None, client_id=None,
                            client_secret=None, extra_params=None,
                            callback=None, scope=None, response_type="code"):
         """Redirects the user to obtain OAuth authorization for this service.
@@ -631,7 +626,7 @@ def _auth_return_future(f):
         return url_concat(url, args)
 
     @_auth_return_future
-[docs]    def oauth2_request(self, url, callback, access_token=None,
+    def oauth2_request(self, url, callback, access_token=None,
                        post_args=None, **args):
         """Fetches the given URL auth an OAuth2 access token.
 
@@ -687,7 +682,7 @@ def _auth_return_future(f):
 
         future.set_result(escape.json_decode(response.body))
 
-[docs]    def get_auth_http_client(self):
+    def get_auth_http_client(self):
         """Returns the `.AsyncHTTPClient` instance to be used for auth requests.
 
         May be overridden by subclasses to use an HTTP client other than
@@ -699,7 +694,7 @@ def _auth_return_future(f):
 
 
 
-[docs]class TwitterMixin(OAuthMixin):
+class TwitterMixin(OAuthMixin):
     """Twitter OAuth authentication.
 
     To authenticate with Twitter, register your application with
@@ -740,7 +735,7 @@ def _auth_return_future(f):
     _TWITTER_BASE_URL = "https://api.twitter.com/1.1"
 
     @return_future
-[docs]    def authenticate_redirect(self, callback_uri=None, callback=None):
+    def authenticate_redirect(self, callback_uri=None, callback=None):
         """Just like `~OAuthMixin.authorize_redirect`, but
         auto-redirects if authorized.
 
@@ -759,7 +754,7 @@ def _auth_return_future(f):
 
 
     @_auth_return_future
-[docs]    def twitter_request(self, path, callback=None, access_token=None,
+    def twitter_request(self, path, callback=None, access_token=None,
                         post_args=None, **args):
         """Fetches the given API path, e.g., ``statuses/user_timeline/btaylor``
 
@@ -851,7 +846,7 @@ def _auth_return_future(f):
 
 
 
-[docs]class GoogleOAuth2Mixin(OAuth2Mixin):
+class GoogleOAuth2Mixin(OAuth2Mixin):
     """Google authentication using OAuth2.
 
     In order to use, register your application with Google and copy the
@@ -876,7 +871,7 @@ def _auth_return_future(f):
     _OAUTH_SETTINGS_KEY = 'google_oauth'
 
     @_auth_return_future
-[docs]    def get_authenticated_user(self, redirect_uri, code, callback):
+    def get_authenticated_user(self, redirect_uri, code, callback):
         """Handles the login for the Google user, returning an access token.
 
         The result is a dictionary containing an ``access_token`` field
@@ -941,7 +936,7 @@ def _auth_return_future(f):
 
 
 
-[docs]class FacebookGraphMixin(OAuth2Mixin):
+class FacebookGraphMixin(OAuth2Mixin):
     """Facebook authentication using the new Graph API and OAuth2."""
     _OAUTH_ACCESS_TOKEN_URL = "https://graph.facebook.com/oauth/access_token?"
     _OAUTH_AUTHORIZE_URL = "https://www.facebook.com/dialog/oauth?"
@@ -949,7 +944,7 @@ def _auth_return_future(f):
     _FACEBOOK_BASE_URL = "https://graph.facebook.com"
 
     @_auth_return_future
-[docs]    def get_authenticated_user(self, redirect_uri, client_id, client_secret,
+    def get_authenticated_user(self, redirect_uri, client_id, client_secret,
                                code, callback, extra_fields=None):
         """Handles the login for the Facebook user, returning a user object.
 
@@ -1029,7 +1024,7 @@ def _auth_return_future(f):
         future.set_result(fieldmap)
 
     @_auth_return_future
-[docs]    def facebook_request(self, path, callback, access_token=None,
+    def facebook_request(self, path, callback, access_token=None,
                          post_args=None, **args):
         """Fetches the given relative API path, e.g., "/btaylor/picture"
 
