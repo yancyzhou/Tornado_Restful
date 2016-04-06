@@ -14,7 +14,7 @@ from tornado import gen
 from urllib import unquote
 from Handler import Handler
 from bs4 import BeautifulSoup
-
+from auth import jwtauth
 # class ReverseHandler(tornado.web.RequestHandler):
 #     def head(self, frob, frob_id):
 #         # frob = retrieve_from_db(frob_id)
@@ -130,6 +130,7 @@ class IndexHandler(Handler):
             self.writejson({'data': result, 'code': '1'})
 
 
+@jwtauth
 class doubanurl(Handler):
     @gen.coroutine
     def get(self):

@@ -49,15 +49,15 @@ class Handler(RequestHandler):
         self.write(obj), 200, {'Content-Type': 'application/json;'}
 
     def get(self, *args, **kwargs):
-        self.writejson(json_decode(str(ApiHTTPError(405))))
+        self.writejson(json_decode(str(ApiHTTPError(10405))))
 
     def post(self, *args, **kwargs):
-        self.writejson(json_decode(str(ApiHTTPError(405))))
+        self.writejson(json_decode(str(ApiHTTPError(10405))))
 
 
 class ErrorHandler(Handler):
     def get(self):
-        self.writejson(json_decode(str(ApiHTTPError(404))))
+        self.writejson(json_decode(str(ApiHTTPError(10404))))
 
     def post(self):
-        self.writejson(json_decode(str(ApiHTTPError(404))))
+        self.writejson(json_decode(str(ApiHTTPError(10404))))

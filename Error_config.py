@@ -1,8 +1,9 @@
 Errortypes = {
-    400: "param_error",
-    401: "invalid_auth",
-    403: "not_authorized",
-    404: "Not found",
-    405: "method_not_allowed",
-    500: "server_error"
+    10400: "param_error",
+    10401: "invalid header authorization",
+    10402: "Missing authorization",
+    10403: "not_authorized",
+    10404: "Not found",
+    10405: "method_not_allowed",
+    10500: "server_error"
     }
