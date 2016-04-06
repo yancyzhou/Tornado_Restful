@@ -128,3 +128,16 @@ class IndexHandler(Handler):
             self.writejson({'data': userinfo, 'fid': fid, 'code': '000'})
         except IndexError, e:
             self.writejson({'data': result, 'code': '1'})
+
+
+class doubanurl(Handler):
+    @gen.coroutine
+    def get(self):
+        # cons = self.get_argument('db')
+        res = []
+        # mongodb 模糊查询
+        n = self.dbs.resultcollection.find({'project': 'douban'}).limit(20000)
+        for item in (yield n.to_list(20000)):
+
+            res.append(item['url'])
+        self.writejson({'data': res})

@@ -1,3 +1,3 @@
 from index import *
-from auth import *
+from login import *
 from parsehtml import *

@@ -494,7 +494,6 @@ class OAuthMixin(object):
         """
         raise NotImplementedError()
 
-
     @return_future
     def _oauth_get_user_future(self, access_token, callback):
         """Subclasses must override this to get basic information about the
@@ -514,7 +513,6 @@ class OAuthMixin(object):
         # By default, call the old-style _oauth_get_user, but new code
         # should override this method instead.
         self._oauth_get_user(access_token, callback)
-
 
     def _oauth_get_user(self, access_token, callback):
         raise NotImplementedError()
@@ -567,7 +565,6 @@ class OAuthMixin(object):
         return httpclient.AsyncHTTPClient()
 
 
-
 class OAuth2Mixin(object):
     """Abstract implementation of OAuth 2.0.
 
@@ -609,7 +606,6 @@ class OAuth2Mixin(object):
         self.redirect(
             url_concat(self._OAUTH_AUTHORIZE_URL, args))
         callback()
-
 
     def _oauth_request_token_url(self, redirect_uri=None, client_id=None,
                                  client_secret=None, code=None,
@@ -673,7 +669,6 @@ class OAuth2Mixin(object):
         else:
             http.fetch(url, callback=callback)
 
-
     def _on_oauth2_request(self, future, response):
         if response.error:
             future.set_exception(AuthError("Error response %s fetching %s" %
@@ -691,7 +686,6 @@ class OAuth2Mixin(object):
         .. versionadded:: 4.3
         """
         return httpclient.AsyncHTTPClient()
-
 
 
 class TwitterMixin(OAuthMixin):
@@ -751,7 +745,6 @@ class TwitterMixin(OAuthMixin):
                    functools.partial(
                        self._on_request_token, self._OAUTH_AUTHENTICATE_URL,
                        None, callback))
-
 
     @_auth_return_future
     def twitter_request(self, path, callback=None, access_token=None,
@@ -819,7 +812,6 @@ class TwitterMixin(OAuthMixin):
         else:
             http.fetch(url, callback=http_callback)
 
-
     def _on_twitter_request(self, future, response):
         if response.error:
             future.set_exception(AuthError(
@@ -843,7 +835,6 @@ class TwitterMixin(OAuthMixin):
         if user:
             user["username"] = user["screen_name"]
         raise gen.Return(user)
-
 
 
 class GoogleOAuth2Mixin(OAuth2Mixin):
@@ -924,7 +915,6 @@ class GoogleOAuth2Mixin(OAuth2Mixin):
                    functools.partial(self._on_access_token, callback),
                    method="POST", headers={'Content-Type': 'application/x-www-form-urlencoded'}, body=body)
 
-
     def _on_access_token(self, future, response):
         """Callback function for the exchange to the access token."""
         if response.error:
@@ -935,13 +925,12 @@ class GoogleOAuth2Mixin(OAuth2Mixin):
         future.set_result(args)
 
 
-
 class FacebookGraphMixin(OAuth2Mixin):
     """Facebook authentication using the new Graph API and OAuth2."""
-    _OAUTH_ACCESS_TOKEN_URL = "https://graph.facebook.com/oauth/access_token?"
-    _OAUTH_AUTHORIZE_URL = "https://www.facebook.com/dialog/oauth?"
+    _OAUTH_ACCESS_TOKEN_URL = "http://localhost:8003/oauth/access_token?"
+    _OAUTH_AUTHORIZE_URL = "http://localhost:8003/dialog/oauth?"
     _OAUTH_NO_CALLBACKS = False
-    _FACEBOOK_BASE_URL = "https://graph.facebook.com"
+    _FACEBOOK_BASE_URL = "http://localhost:8003"
 
     @_auth_return_future
     def get_authenticated_user(self, redirect_uri, client_id, client_secret,
@@ -989,7 +978,6 @@ class FacebookGraphMixin(OAuth2Mixin):
         http.fetch(self._oauth_request_token_url(**args),
                    functools.partial(self._on_access_token, redirect_uri, client_id,
                                      client_secret, callback, fields))
-
 
     def _on_access_token(self, redirect_uri, client_id, client_secret,
                          future, fields, response):
@@ -1081,7 +1069,6 @@ class FacebookGraphMixin(OAuth2Mixin):
         oauth_future = self.oauth2_request(url, access_token=access_token,
                                            post_args=post_args, **args)
         chain_future(oauth_future, callback)
-
 
 
 def _oauth_signature(consumer_token, method, url, parameters={}, token=None):
