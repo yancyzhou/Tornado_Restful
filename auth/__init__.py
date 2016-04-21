@@ -46,7 +46,6 @@ def jwtauth(handler_class):
                     handler._transforms = []
                     handler.set_status(200)
                     handler.writejson({'message': e.message, 'code': 10416})
-                    # handler.writejson(json_decode(str(ApiHTTPError(10403))))
                     handler.finish()
             else:
                 handler._transforms = []
