@@ -1,7 +1,7 @@
 from tornado.web import RequestHandler, StaticFileHandler
 from tornado.web import HTTPError
 from Error_config import Errortypes
-from tornado.escape import json_decode, json_encode
+from tornado.escape import json_decode, json_encode, to_unicode
 import os
 
 
@@ -53,6 +53,19 @@ class Handler(RequestHandler):
 
     def post(self, *args, **kwargs):
         self.writejson(json_decode(str(ApiHTTPError(10405))))
+
+    '''
+    Get the json data format
+    '''
+    def get_json_argument(self, name, default=None):
+        args = json_decode(self.request.body)
+        name = to_unicode(name)
+        if name in args:
+            return args[name]
+        elif default is not None:
+            return default
+        else:
+            raise MissingArgumentError(name)
 
 
 class ErrorHandler(Handler):
