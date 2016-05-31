@@ -20,7 +20,4 @@ Settings = dict(
     static_path=os.path.join(os.path.dirname(__file__), "static"),
     ui_modules={},
     debug=True,
-    facebook_api_key='2040 ... 8759',
-    facebook_secret='eae0 ... 2f08',
-    cookie_secret='NTliOTY5NzJkYTVlMTU0OTAwMTdlNjgzMTA5M2U3OGQ5NDIxZmU3Mg=='
 )

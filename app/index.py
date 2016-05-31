@@ -4,50 +4,54 @@
 @author Vincent
 ======================
 '''
+from __future__ import division
 import tornado.web
 import tornado.httpclient
 import urllib2
 import re
 import textwrap
 import json
+import random
 from tornado import gen
 from urllib import unquote
 from Handler import Handler
 from bs4 import BeautifulSoup
 from auth import jwtauth
-# class ReverseHandler(tornado.web.RequestHandler):
-#     def head(self, frob, frob_id):
-#         # frob = retrieve_from_db(frob_id)
-#         print int(frob_id)
-#         if int(frob_id) > 20:
-#             self.set_status(200)
-#         else:
-#             self.set_status(2001)
-#
-#     def write_error(self, status_code, **kwargs):
-#         self.write("Gosh darnit, user! You caused a %d error." % status_code)
-#
-#     def get(self, input, ints):
-#
-#         temp = {"data": input[::-1]}
-#
-#         self.write(temp)
-#
-#
-# class BookModule(tornado.web.UIModule):
-#     def render(self, book):
-#         return self.render_string(
-#             "modules/book.html",
-#             book=book,
-#         )
-#
-#     def css_files(self):
-#         return "/static/css/recommended.css"
-#
-#     def javascript_files(self):
-#         return "/static/js/recommended.js"
+
+@jwtauth
+class ReverseHandler(tornado.web.RequestHandler):
+    def head(self, frob, frob_id):
+        # frob = retrieve_from_db(frob_id)
+        print int(frob_id)
+        if int(frob_id) > 20:
+            self.set_status(200)
+        else:
+            self.set_status(2001)
+
+    def write_error(self, status_code, **kwargs):
+        self.write("Gosh darnit, user! You caused a %d error." % status_code)
+
+    def get(self, input, ints):
+
+        temp = {"data": input[::-1]}
+
+        self.write(temp)
 
 
+class BookModule(tornado.web.UIModule):
+    def render(self, book):
+        return self.render_string(
+            "modules/book.html",
+            book=book,
+        )
+
+    def css_files(self):
+        return "/static/css/recommended.css"
+
+    def javascript_files(self):
+        return "/static/js/recommended.js"
+
+@jwtauth
 class StartSpider(Handler):
     """开始抓取数据接口"""
 
@@ -71,7 +75,7 @@ class StartSpider(Handler):
         else:
             self.writejson(result)
 
-
+@jwtauth
 class LongText(Handler):
     """Get Long Text"""
 
@@ -100,7 +104,7 @@ class LongText(Handler):
         except:
             self.writejson({'data': 'system error', 'code': '1'})
 
-
+@jwtauth
 class IndexHandler(Handler):
 
     @tornado.web.asynchronous
@@ -131,14 +135,44 @@ class IndexHandler(Handler):
 
 
 @jwtauth
-class doubanurl(Handler):
+class Testdata(Handler):
     @gen.coroutine
     def get(self):
+
         # cons = self.get_argument('db')
-        res = []
+        my_dict = {i: i * i for i in xrange(100)}
+        # my_set = {i * 15 for i in xrange(100)}
+        import ast
+        expr = "[1, 2, 3]"
+        my_list = ast.literal_eval(expr)
+        print my_list
+        iterable = ['ahskjahd', 12, 23, 11, 'aaaa']
         # mongodb 模糊查询
         n = self.dbs.resultcollection.find({'project': 'douban'}).limit(20000)
         for item in (yield n.to_list(20000)):
-
             res.append(item['url'])
-        self.writejson({'data': res})
+        for i, item in enumerate(iterable, 1):
+            print i, item
+        self.writejson({'data': my_dict})
+
+
+@jwtauth
+class Testdata7netcc(Handler):
+    """获取训练样本数据"""
+    # def __init__(self, arg):
+    #     super(Testdata7netcc, self).__init__()
+    #     self.arg = arg
+    @tornado.web.asynchronous
+    @gen.coroutine
+    def get(self):
+
+        client = tornado.httpclient.AsyncHTTPClient()
+        code_url = 'http://10.161.165.239:7011/imgsvr/ru'
+        code_result = yield tornado.gen.Task(client.fetch, code_url)
+        code_result_json = json.loads(code_result.body)
+        if code_result_json['status'] == 200:
+            schoool_code_list = code_result_json['data']
+        # for item in code_result_json:
+        # testlist = ['a', 'b', 'e', 'r', 'q']
+        schoool_code_list_small = random.sample(schoool_code_list, 2)
+        self.writejson({'data': schoool_code_list_small})

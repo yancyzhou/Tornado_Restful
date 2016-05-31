@@ -9,6 +9,7 @@ import tornado.web
 import tornado.httpclient
 from tornado import gen
 from Handler import Handler
+from auth import jwtauth
 """
 抽取单篇文档中的关键词
 输入参数：
@@ -436,7 +437,7 @@ class ParseHtml():
                   "证书": self.number(), "日期": self.re_date()}
         return result
 
-
+@jwtauth
 class GetKeywords(Handler):
     @gen.coroutine
     def get(self):
