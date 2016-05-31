@@ -31,7 +31,7 @@ class AuthHandler(Handler):
     def _set_token(self):
         self.encodeds = jwt.encode({
             'user': {'username': self.username, 'userid': self.id},
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=60)},
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=3600)},
             SECRET,
             algorithm='HS256')
 

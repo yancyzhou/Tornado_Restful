@@ -18,6 +18,7 @@ from Handler import Handler
 from bs4 import BeautifulSoup
 from auth import jwtauth
 
+
 @jwtauth
 class ReverseHandler(tornado.web.RequestHandler):
     def head(self, frob, frob_id):
@@ -51,6 +52,7 @@ class BookModule(tornado.web.UIModule):
     def javascript_files(self):
         return "/static/js/recommended.js"
 
+
 @jwtauth
 class StartSpider(Handler):
     """开始抓取数据接口"""
@@ -74,6 +76,7 @@ class StartSpider(Handler):
             self.writejson(json.loads(responses.body))
         else:
             self.writejson(result)
+
 
 @jwtauth
 class LongText(Handler):
@@ -103,6 +106,7 @@ class LongText(Handler):
             self.writejson(data)
         except:
             self.writejson({'data': 'system error', 'code': '1'})
+
 
 @jwtauth
 class IndexHandler(Handler):
@@ -172,7 +176,13 @@ class Testdata7netcc(Handler):
         code_result_json = json.loads(code_result.body)
         if code_result_json['status'] == 200:
             schoool_code_list = code_result_json['data']
-        # for item in code_result_json:
-        # testlist = ['a', 'b', 'e', 'r', 'q']
-        schoool_code_list_small = random.sample(schoool_code_list, 2)
-        self.writejson({'data': schoool_code_list_small})
+        schoool_code_list_small = random.sample(schoool_code_list, 200)
+        # res = [x['Code'] for x in schoool_code_list_small]
+        res = map(lambda x: "http://10.161.165.239:7011/imgsvr/exam?ru="+x['Code'], schoool_code_list_small)
+        result = []
+        for item in res:
+            school_result = yield tornado.gen.Task(client.fetch, item)
+            temp_result = json.loads(school_result.body)
+            if temp_result['data'] and temp_result['status'] == 200:
+                result.append(temp_result)
+        self.writejson({'data': result})
