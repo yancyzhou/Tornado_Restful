@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+from Handler import Handler
+
 '''
 首页
 '''
@@ -6,7 +8,7 @@
 # 后台系统登录
 
 
-class AdminLogin(object):
+class AdminLogin(Handler):
     """docstring for Login"""
     # usertype 默认为0 表示普通用户，1表示为管理员用户
     def _set_token(self):

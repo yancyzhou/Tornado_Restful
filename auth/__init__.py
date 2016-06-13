@@ -35,14 +35,12 @@ def jwtauth(handler_class):
                     handler.finish()
 
                 token = parts[1]
-                print token
                 try:
                     res = jwt.decode(
                         token,
                         secret_key,
                         options=options
                     )
-                    print res
                 except Exception, e:
                     handler._transforms = []
                     handler.set_status(200)
