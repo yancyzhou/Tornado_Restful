@@ -14,7 +14,7 @@ DB = 'localhost'
 # 数据库的端口
 Port = 27017
 # mongodb的集合名称Collection
-Collections = 'test'
+Collections = 'yancy'
 Settings = dict(
     template_path=os.path.join(os.path.dirname(__file__), "templates"),
     static_path=os.path.join(os.path.dirname(__file__), "static"),

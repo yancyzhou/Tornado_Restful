@@ -18,7 +18,8 @@ from Handler import Handler
 from bs4 import BeautifulSoup
 from auth import jwtauth
 from bson.objectid import ObjectId
-
+import requests
+import urllib
 # @jwtauth
 # class ReverseHandler(tornado.web.RequestHandler):
 #     def head(self, frob, frob_id):
@@ -169,6 +170,37 @@ class Testdata(Handler):
         self.writejson({'data': i})
 
 
+# 江西学校缴费情况表合并
+class Mregedata(Handler):
+    @tornado.web.asynchronous
+    @gen.coroutine
+    def get(self):
+
+        # # cons = self.get_argument('db')
+        # my_dict = {i: i * i for i in xrange(100)}
+        # # my_set = {i * 15 for i in xrange(100)}
+        # import ast
+        # expr = "[1, 2, 3]"
+        # my_list = ast.literal_eval(expr)
+        # print my_list
+        # iterable = ['ahskjahd', 12, 23, 11, 'aaaa']
+        # mongodb 模糊查询
+        n = self.dbs.student.find().limit(2000)
+        i = 0
+        for item in (yield n.to_list(2000)):
+            result = yield self.dbs.students.find_one({'M': item['M'], 'RU_School_schoolname': item['RU_School_schoolname'], 'province': item['province']})
+            if result is not None:
+                moneysum = result['Money']+item['Money']
+                old_document = yield self.dbs.students.find_one({"_id": result['_id']})
+                results = yield self.dbs.students.update({"_id": result['_id']}, {"$set": {"Money": moneysum}})
+                print 'updated %s document' % results['n']
+            else:
+                inserts = yield self.dbs.students.insert({"Money": item['Money'], "M": item['M'], 'RU_School_schoolname': item['RU_School_schoolname'], 'province': item['province']})
+                print inserts
+            i += 1
+        self.writejson({'data': i})
+
+
 @jwtauth
 class Testdata7netcc(Handler):
     """获取训练样本数据"""
@@ -176,7 +208,7 @@ class Testdata7netcc(Handler):
     @tornado.web.asynchronous
     @gen.coroutine
     def get(self):
-        # subjectparam = self.get_json_argument('subject')
+        # SubjectParam = self.get_json_argument('subject')
         client = tornado.httpclient.AsyncHTTPClient()
         code_url = 'http://10.161.165.239:7011/imgsvr/ru'
         code_result = yield tornado.gen.Task(client.fetch, code_url)
@@ -195,23 +227,23 @@ class Testdata7netcc(Handler):
                 temp_result = json.loads(school_result.body)
                 if temp_result['data'] and temp_result['status'] == 200:
                     result.append(temp_result)
-            self.school_one = []
+            self.SchoolOne = []
             if result.__len__() > 0:
                 if len(random.sample(result, 1)[0]['data']) > 1:
-                    self.school_one = random.sample(random.sample(result, 1)[0]['data'], 1)[0]
+                    self.SchoolOne = random.sample(random.sample(result, 1)[0]['data'], 1)[0]
                 else:
-                    self.school_one = random.sample(result, 1)[0]['data'][0]
-            if len(self.school_one['km']) == 0:
+                    self.SchoolOne = random.sample(result, 1)[0]['data'][0]
+            if len(self.SchoolOne['km']) == 0:
                 continue
             else:
-                subject = random.sample(self.school_one['km'], 1)[0]
-            url = "http://10.161.165.239:7011/imgsvr/answerpaper?ru=%s&examguid=%s&km=%s" % (self.school_one['ru'], self.school_one['Guid'], subject)
+                subject = random.sample(self.SchoolOne['km'], 1)[0]
+            url = "http://10.161.165.239:7011/imgsvr/answerpaper?ru=%s&examguid=%s&km=%s" % (self.SchoolOne['ru'], self.SchoolOne['Guid'], subject)
             response = yield tornado.gen.Task(client.fetch, url)
             try:
                 results = json.loads(response.body)
             except:
                 continue
-            url2 = "http://10.161.165.239:7011/imgsvr/asiresponse?ru=%s&examguid=%s&km=%s&viewIndex=1&viewLength=1" % (self.school_one['ru'], self.school_one['Guid'], subject)
+            url2 = "http://10.161.165.239:7011/imgsvr/asiresponse?ru=%s&examguid=%s&km=%s&viewIndex=1&viewLength=1" % (self.SchoolOne['ru'], self.SchoolOne['Guid'], subject)
             response2 = yield tornado.gen.Task(client.fetch, url2)
             reuslts2 = json.loads(response2.body)
             if len(reuslts2['data']) == 0:
@@ -227,11 +259,19 @@ class yuwen7netcc(Handler):
     @tornado.web.asynchronous
     @gen.coroutine
     def post(self):
-        subjectparam = self.get_json_argument('subject')
+        SubjectParam = self.get_json_argument('subject')
         client = tornado.httpclient.AsyncHTTPClient()
         code_url = 'http://10.161.165.239:7011/imgsvr/ru'
         code_result = yield tornado.gen.Task(client.fetch, code_url)
-        code_result_json = json.loads(code_result.body)
+        if code_result.body is None:
+            self.writejson({'data': '请检查您的服务是否是开启状态！'})
+            return
+        else:
+            try:
+                code_result_json = json.loads(code_result.body)
+            except Exception as e:
+                self.writejson({'data': e})
+                return
         if code_result_json['status'] == 200 and code_result_json['data']:
             schoool_code_list = code_result_json['data']
         self.schoolname_list = [
@@ -336,7 +376,6 @@ class yuwen7netcc(Handler):
             '皖江高中',
             '盘县第二中学',
         ]
-        self.num = []
         for item in schoool_code_list:
             if item['Name'].encode('utf-8') in self.schoolname_list:
                 continue
@@ -352,25 +391,47 @@ class yuwen7netcc(Handler):
                     result.append(temp_result)
             except:
                 continue
-        self.school_one = []
-
+        self.SchoolOne = []
+        CompositionIdList = []
         for items in result:
-            print items
-            if len(items['data']) > 1:
-                self.school_one += items['data']
-            else:
-                self.school_one.append(items['data'])
-        print "school_one", self.school_one
-        url = "http://10.161.165.239:7011/imgsvr/answerpaper?ru=%s&examguid=%s&km=%s" % (self.school_one['ru'], self.school_one['Guid'], subjectparam)
-        response = yield tornado.gen.Task(client.fetch, url)
-        try:
-            results = json.loads(response.body)
-        except:
-            print 111
-        url2 = "http://10.161.165.239:7011/imgsvr/asiresponse?ru=%s&examguid=%s&km=%s&viewIndex=1&viewLength=1" % (self.school_one['ru'], self.school_one['Guid'], subjectparam)
-        response2 = yield tornado.gen.Task(client.fetch, url2)
-        reuslts2 = json.loads(response2.body)
-        self.writejson({'result': 1, 'PapersInfo': 2})
+            if len(items['data']) > 0:
+                self.SchoolOne += items['data']
+            # else:
+            #     print "SchoolOne", items['data']
+            #     self.SchoolOne.append(items['data'])
+            # url = "http://10.161.165.239:7011/imgsvr/answerpaper?ru=%s&examguid=%s&km=%s" % (self.SchoolOne['ru'], self.SchoolOne['Guid'], SubjectParam)
+            # response = yield tornado.gen.Task(client.fetch, url)
+            # try:
+            #     results = json.loads(response.body)
+            # except:
+            #     continue
+        for Item in self.SchoolOne:
+            url2 = "http://10.161.165.239:7011/imgsvr/asiresponse?ru=%s&examguid=%s&km=%s&viewIndex=1&viewLength=40" % (Item['ru'], Item['Guid'], SubjectParam)
+            ResponseData = yield tornado.gen.Task(client.fetch, url2)
+            try:
+                Result = json.loads(ResponseData.body)
+                if len(Result['data']) > 0:
+                    for value in Result['data']:
+                        if value['ItemString'][-1]['Score'] > 55:
+                            CompositionIdList.append({'ImageGuid': value['ImageGuid'], 'code': Item['ru']})
+                        else:
+                            continue
+                else:
+                    continue
+            except Exception as e:
+                continue
+        ImagePath = '/var/local/www7netcc/CompositionIdList/'
+        for itemss in CompositionIdList:
+            code = itemss['code']
+            ImageGuid = itemss['ImageGuid']
+            imgurl = 'http://10.161.165.239:7011/imgsvr/img?ru=%s&guid=%s' % (code, ImageGuid)
+            response = yield tornado.gen.Task(client.fetch, imgurl)
+            result = response.body
+            ImageFile = open(ImagePath+ImageGuid+'.jpeg', "wb")
+            ImageFile.write(result)
+            ImageFile.flush()
+            ImageFile.close()
+        self.writejson({'status': 200, 'length': len(CompositionIdList)})
 
 
 class GetPapersImage(Handler):
@@ -378,12 +439,68 @@ class GetPapersImage(Handler):
 
     @tornado.web.asynchronous
     @gen.coroutine
-    def post(self):
-        code = self.get_json_argument('code')
-        ImageGuid = self.get_json_argument('ImageGuid')
+    def get(self):
+        code = self.get_argument('code')
+        ImageGuid = self.get_argument('ImageGuid')
         client = tornado.httpclient.AsyncHTTPClient()
         imgurl = 'http://10.161.165.239:7011/imgsvr/img?ru=%s&guid=%s' % (code, ImageGuid)
         response = yield tornado.gen.Task(client.fetch, imgurl)
         result = response.body
-        print result
+        self.set_header("Content-Type", "image/jpeg")
         self.write(result)
+
+
+class VerificationUrl(Handler):
+    """检测url是否有效"""
+
+    @tornado.web.asynchronous
+    @gen.coroutine
+    def post(self):
+        UrlRule = self.get_argument('rule')
+        import urllib
+        n = self.dbs.resultcollection.find({'project': 'gethost', 'result.valid': 0}).limit(1000)
+        for item in (yield n.to_list(1000)):
+            # print self.getPR(item['result']['url'])
+            if item['result']['url'][-1] == '/':
+                Rule = item['result']['url']+UrlRule
+            else:
+                Rule = item['result']['url']+'/'+UrlRule
+            self.httpExists(Rule)
+    self.writejson({'data': 0})
+
+    @tornado.web.asynchronous
+    @gen.coroutine
+    def httpExists(self, url):
+        client = tornado.httpclient.AsyncHTTPClient()
+        response = yield tornado.gen.Task(client.fetch, url)
+
+        self.code = response.code
+
+        if self.code == 200:
+            print url
+        else:
+            print str(self.code)+'     '+url
+
+    GPR_HASH_SEED = "Mining PageRank is AGAINST GOOGLE'S TERMS OF SERVICE. Y\
+    es, I'm talking to you, scammer."
+
+    def google_hash(self, value):
+        magic = 0x1020345
+        for i in xrange(len(value)):
+            magic ^= ord(self.GPR_HASH_SEED[i % len(self.GPR_HASH_SEED)]) ^ ord(value[i])
+            magic = (magic >> 23 | magic << 9) & 0xFFFFFFFF
+        return "8%08x" % (magic)
+
+    def getPR(self, www):
+
+        try:
+            print self.google_hash(www)
+            print www
+            url = 'http://toolbarqueries.google.com.hk/tbr?client=navclient-auto&ch=%s&features=Rank&q=info:%s&gws_rd=cr' % (self.google_hash(www), www)
+            print url
+            response = requests.get(url)
+            # print response
+            rex = re.search(r'(.*?:.*?:)(\d+)', response.text)
+            return rex.group(2)
+        except:
+            return None
