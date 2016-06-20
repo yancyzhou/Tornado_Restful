@@ -31,6 +31,7 @@ class AuthHandler(Handler):
     def _set_token(self):
         self.encodeds = jwt.encode({
             'user': {'username': self.username, 'userid': self.id},
+            'relate_info': 1,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=3600)},
             SECRET,
             algorithm='HS256')
@@ -45,7 +46,7 @@ class AuthHandler(Handler):
         inputpasswrod = passwordmd5.hexdigest()
         userdata = yield self.dbs.user.find({'username': self.username}).to_list(1)
         self.id = str(userdata[0]['_id'])
-        if self.username == 'admin' and inputpasswrod == userdata[0]['password']:
+        if inputpasswrod == userdata[0]['password']:
 
             self._set_token()
             response = {'token': self.encodeds}
