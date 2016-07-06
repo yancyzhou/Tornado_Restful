@@ -3,7 +3,7 @@ from tornado.web import HTTPError
 from Error_config import Errortypes
 from tornado.escape import json_decode, json_encode, to_unicode
 import os
-
+from tornado import gen
 
 class ApiHTTPError(Exception):
     """An exception that will turn into an HTTP error response.
@@ -45,8 +45,20 @@ class Handler(RequestHandler):
     def dbs(self):
         return self.application.db
 
+    @gen.coroutine
     def writejson(self, obj):
         self.write(obj), 200, {'Content-Type': 'application/json;'}
+        self.finish()
+
+    def get_json_arguments(self, args, **kwargs):
+        result = json_decode(self.request.body)
+        for item in args:
+            if item in kwargs:
+                result[item] = self.get_json_argument(item, kwargs[item])
+            else:
+                result[item] = self.get_json_argument(item)
+            result[item] = self.get_json_argument(item, default)
+        return result
 
     def get(self, *args, **kwargs):
         self.writejson(json_decode(str(ApiHTTPError(10405))))
@@ -65,10 +77,13 @@ class Handler(RequestHandler):
         elif default is not None:
             return default
         else:
-            raise MissingArgumentError(name)
+            msg = "Missing argument '%s'" % name
+            result = json_decode(str(ApiHTTPError(10410)))
+            result['message'] = msg
+            self.writejson(result)
 
 
-class ErrorHandler(Handler):
+class NotFound(Handler):
     def get(self):
         self.writejson(json_decode(str(ApiHTTPError(10404))))
 

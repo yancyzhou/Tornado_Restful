@@ -30,7 +30,7 @@ class AuthHandler(Handler):
 
     def _set_token(self):
         self.encodeds = jwt.encode({
-            'user': {'username': self.username, 'userid': self.id},
+            'user': {'username': self.username, 'user_id': self.id},
             'relate_info': 1,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=3600)},
             SECRET,

@@ -8,5 +8,6 @@ Errortypes = {
     10500: "server_error",
     20201: "User already exists",
     20001: "The password length is less than 8 or greater than 15",
-    20002: "Username or Password is Wrong!"
+    20002: "Username or Password is Wrong!",
+    10410: "Missing argument '%s'"
     }
