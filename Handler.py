@@ -83,7 +83,6 @@ class Handler(RequestHandler):
             self.writejson(result)
 
 
-
 class NotFound(Handler):
     def get(self):
         self.writejson(json_decode(str(ApiHTTPError(10404))))
