@@ -119,27 +119,39 @@ class GetrRuleAll(Handler):
         for item in (yield res.to_list(20)):
             item['_id'] = str(item["_id"])
             self.results.append(item)
-        print self.results
         self.writejson({'data': self.results, 'total': math.ceil(n/self.pagesize), 'currentpage': self.page, 'code': 1})
 
 
 # addrule
-@jwtauth
+# @jwtauth
 class AddRule(Handler):
     """添加Url过滤规则"""
 
     @gen.coroutine
     def post(self):
         # print self.get_json_arguments(['rule','dshfkjsh','kjhdjkfsd'],**{'jskldjf':'asdas'})
-        rule = self.get_json_argument('rules')
+        rule = self.get_json_argument('rule')
         host = self.get_json_argument('host')
         classname = self.get_json_argument('classname')
-        print rule, host, classname
-        obj = {}
-        obj['rule'] = rule
-        obj['host'] = host
-        obj['classname'] = classname
-        con = self.dbs.rule
-        yield con.save(obj)
-        print 'document _id: %s' % repr(obj['_id'])
-        self.writejson({'data': repr(obj['_id']), 'code': 11, 'description': '添加成功！'})
+        # print rule, host, classname
+        if rule and host and classname:
+            obj = {}
+            obj['rule'] = rule
+            obj['host'] = host
+            obj['classname'] = classname
+            con = self.dbs.rule
+            yield con.save(obj)
+            # print 'document _id: %s' % repr(obj['_id'])
+            self.writejson({'data': repr(obj['_id']), 'code': 1, 'description': '添加成功！'})
+
+class DelRule(Handler):
+
+    @gen.coroutine
+    def post(self):
+        id = self.get_json_argument('ruleid')
+        if id:
+            obj = {}
+            obj['_id'] = ObjectId(id)
+            con = self.dbs.rule
+            yield con.remove(obj)
+            self.writejson({'data': repr(obj['_id']), 'code': 1, 'description': '删除成功！'})
