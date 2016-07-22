@@ -4,7 +4,7 @@ from tornado import httpserver, ioloop, options as Options, web, platform
 from config import *
 from utils import *
 from tornado.options import define, options
-
+import pymongo
 define("port", default=Webservers_port, help="run on the given port", type=int)
 # from tornado.netutil import Resolver
 #
@@ -16,8 +16,9 @@ class Application(tornado.web.Application):
         handlers = Handlers
         settings = Settings
         client = motor.motor_tornado.MotorClient(DB, Port)
-        # client = pymongo.Connection("localhost", 27017)
+        clientpy = pymongo.Connection(DB, Port)
         self.db = client[Collections]
+        self.dbpy = clientpy[Collections]
         web.Application.__init__(self, handlers, **settings)
 
 if __name__ == "__main__":

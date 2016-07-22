@@ -1,9 +1,47 @@
 from tornado.web import RequestHandler, StaticFileHandler
 from tornado.web import HTTPError
-from Error_config import Errortypes
+from Error_config import Errortypes, Valid_Ip
 from tornado.escape import json_decode, json_encode, to_unicode
 import os
 from tornado import gen
+
+
+def VerifyIP(handler_class):
+    def wrap_execute(handler_execute):
+        def Is_Valid_Ip(handler, kwargs):
+            if kwargs:
+                if handler.request.remote_ip in kwargs:
+                    pass
+                else:
+                    handler._transforms = []
+                    handler.set_status(200)
+                    handler.writejson(json_decode(str(ApiHTTPError(10402))))
+                    handler.finish()
+            else:
+                if handler.request.remote_ip in Valid_Ip:
+                    pass
+                else:
+                    handler._transforms = []
+                    handler.set_status(200)
+                    handler.writejson(json_decode(str(ApiHTTPError(10402))))
+                    handler.finish()
+            return True
+
+        def _execute(self, transforms, *args, **kwargs):
+
+            try:
+                Is_Valid_Ip(self, kwargs)
+            except Exception:
+                return False
+
+            return handler_execute(self, transforms, *args, **kwargs)
+
+        return _execute
+
+    handler_class._execute = wrap_execute(handler_class._execute)
+
+    return handler_class
+
 
 class ApiHTTPError(Exception):
     """An exception that will turn into an HTTP error response.
@@ -44,6 +82,10 @@ class Handler(RequestHandler):
     @property
     def dbs(self):
         return self.application.db
+
+    @property
+    def dbspy(self):
+        return self.application.dbpy
 
     @gen.coroutine
     def writejson(self, obj):
