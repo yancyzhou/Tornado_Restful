@@ -4,7 +4,7 @@
 @author Vincent
 ======================
 '''
-from __future__ import division
+# from __future__ import division
 import tornado.web
 import tornado.httpclient
 import urllib2
@@ -13,9 +13,10 @@ import textwrap
 import json
 import random
 import math
+import time
 from tornado import gen
 from urllib import unquote
-from Handler import Handler
+from Handler import BaseHandler,TmpHandle
 from Handler import VerifyIP
 from bs4 import BeautifulSoup
 from auth import jwtauth
@@ -23,33 +24,28 @@ from bson.objectid import ObjectId
 import requests
 import urllib
 
-
-class VerificationUrl(Handler):
+class VerificationUrl(BaseHandler):
     """检测url是否有效"""
-    def prepare(self):
-        self.UrlRule = []
-        for document in self.dbspy.resultcollection.find({'project': 'gethost', 'result.valid': 0}):
-            for documentrule in self.dbspy.rule.find({}):
-                if document['result']['url'][-1] == '/':
-                    RuleUrl = document['result']['url']+documentrule['rule']
-                else:
-                    RuleUrl = document['result']['url']+'/'+documentrule['rule']
-                self.UrlRule.append({'_id': document['_id'], 'cmsname': documentrule['host'], 'url': RuleUrl})
 
-    @tornado.web.asynchronous
+    # @tornado.web.asynchronous
     @gen.coroutine
-    def post(self):
-        for item in self.UrlRule:
-            self.httpExists(item)
-        self.writejson({'data': 0})
-
-    @tornado.web.asynchronous
-    @gen.engine
-    def httpExists(self, document):
-
+    def prepare(self):
+        result = self.dbspy.rule.find({}).sort([("keywords",-1)])
+        self.UrlRule = list(result)
+        VerifyUrl = self.get_argument('url',None)
+        data = []
+        self._data = {}
         client = tornado.httpclient.AsyncHTTPClient()
-        response = yield gen.Task(client.fetch, document['url'])
-        if response.code == 200:
-            result = self.dbspy.resultcollection.update({'_id': document['_id']}, {'$set': {'result.valid': 1, "cmsname": document['cmsname']}})
-        else:
-            result = self.dbspy.resultcollection.update({'_id': document['_id'], 'result.valid': 0}, {'$set': {'result.valid': -1}})
+        for item in self.UrlRule:
+            FullUrl = VerifyUrl+item['rule']
+            response = yield gen.Task(client.fetch, FullUrl)
+            if item.has_key('keywords'):
+                if len(item['keywords'])>0 and response.code == 200:
+                    for keyword in item['keywords']:
+                        if response.body.find(keyword.encode('utf-8'))!=-1:
+                            data.append(item['rule'])
+        self._data = {'data': data}
+
+    # @gen.coroutine
+    def POST(self):
+        pass

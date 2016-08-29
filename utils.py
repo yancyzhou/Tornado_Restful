@@ -9,6 +9,7 @@ Handlers = [
     (r'/api/getrule', GetrRuleAll),
     (r'/api/addrule', AddRule),
     (r'/api/delrule', DelRule),
+    (r'/api/shodan', getshodan),
     (r'/api/VerificationUrl', VerificationUrl),
     (r".*", NotFound),
 ]

@@ -18,6 +18,7 @@ def VerifyIP(handler_class):
                     handler.writejson(json_decode(str(ApiHTTPError(10402))))
                     handler.finish()
             else:
+                print handler.request.remote_ip
                 if handler.request.remote_ip in Valid_Ip:
                     pass
                 else:
@@ -78,7 +79,61 @@ class ApiHTTPError(Exception):
         return result
 
 
-class Handler(RequestHandler):
+class BaseHandler(RequestHandler):
+    _data = None
+
+    @gen.coroutine
+    def writejson(self, obj):
+        self.write(obj), 200, {'Content-Type': 'application/json;'}
+        self.finish()
+    def get(self, *args, **kwargs):
+        self._method_call('GET', *args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        self._method_call('POST', *args, **kwargs)
+
+    def _method_call(self, method, *args, **kwargs):
+        api_call = getattr(self, method)
+        try:
+            api_call(*args, **kwargs)
+        except HTTPError as e:
+            raise e
+        # except Exception as e:
+        #     app_log.error('Uncaught Exception in %s %s call'%(getattr(getattr(self, '__class__'), '__name__'), method), exc_info=True)
+        #     resp = self.init_resp(1, 'Unknown Error')
+        else:
+            resp = self.init_resp()
+
+        self.wo_resp(resp)
+
+    @staticmethod
+
+    def init_resp(code=0, msg=None):
+        """
+        responsibility for rest api code msg
+        can override for other style
+
+        :args code 0, rest api code
+        :args msg None, rest api msg
+
+        """
+        resp = {
+            'code': code,
+            'msg': msg,
+            'res': {},
+        }
+        return resp
+
+    def wo_resp(self, resp):
+        """
+        can override for other style
+        """
+
+        if isinstance(self._data, dict):
+            resp['res'].update(self._data)
+
+        self.writejson(self._data)
+
     @property
     def dbs(self):
         return self.application.db
@@ -86,11 +141,6 @@ class Handler(RequestHandler):
     @property
     def dbspy(self):
         return self.application.dbpy
-
-    @gen.coroutine
-    def writejson(self, obj):
-        self.write(obj), 200, {'Content-Type': 'application/json;'}
-        self.finish()
 
     def get_json_arguments(self, args, **kwargs):
         result = json_decode(self.request.body)
@@ -102,10 +152,10 @@ class Handler(RequestHandler):
             result[item] = self.get_json_argument(item, default)
         return result
 
-    def get(self, *args, **kwargs):
+    def GET(self, *args, **kwargs):
         self.writejson(json_decode(str(ApiHTTPError(10405))))
 
-    def post(self, *args, **kwargs):
+    def POST(self, *args, **kwargs):
         self.writejson(json_decode(str(ApiHTTPError(10405))))
 
     '''
@@ -123,9 +173,10 @@ class Handler(RequestHandler):
             result = json_decode(str(ApiHTTPError(10410)))
             result['message'] = msg
             self.writejson(result)
+class TmpHandle(BaseHandler):
+    pass
 
-
-class NotFound(Handler):
+class NotFound(BaseHandler):
     def get(self):
         self.writejson(json_decode(str(ApiHTTPError(10404))))
 

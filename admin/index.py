@@ -1,6 +1,10 @@
 # -*- coding:utf-8 -*-
-from Handler import Handler
+from Handler import BaseHandler
+import jwt
+import datetime
+import hashlib
 
+SECRET = 'my_secret_key'
 '''
 首页
 '''
@@ -8,7 +12,7 @@ from Handler import Handler
 # 后台系统登录
 
 
-class AdminLogin(Handler):
+class AdminLogin(BaseHandler):
     """docstring for Login"""
     # usertype 默认为0 表示普通用户，1表示为管理员用户
     def _set_token(self):

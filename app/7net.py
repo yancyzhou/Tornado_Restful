@@ -14,7 +14,7 @@ import json
 import random
 from tornado import gen
 from urllib import unquote
-from Handler import Handler
+from Handler import BaseHandler
 from bs4 import BeautifulSoup
 from auth import jwtauth
 from bson.objectid import ObjectId

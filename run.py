@@ -5,7 +5,17 @@ from config import *
 from utils import *
 from tornado.options import define, options
 import pymongo
-define("port", default=Webservers_port, help="run on the given port", type=int)
+import click
+# @click.group(invoke_without_command=True)
+@click.command()
+@click.option('--port', default=Webservers_port, help='webui port')
+def cli(**kwargs):
+    define("port", default=kwargs['port'], help="run on the given port", type=int)
+    Options.parse_command_line()
+    http_server = httpserver.HTTPServer(Application())
+    http_server.listen(options.port)
+    ioloop.IOLoop.instance().start()
+
 # from tornado.netutil import Resolver
 #
 # Resolver.configure('platform.caresresolver.CaresResolver')
@@ -22,7 +32,4 @@ class Application(tornado.web.Application):
         web.Application.__init__(self, handlers, **settings)
 
 if __name__ == "__main__":
-    Options.parse_command_line()
-    http_server = httpserver.HTTPServer(Application())
-    http_server.listen(options.port)
-    ioloop.IOLoop.instance().start()
+    cli()

@@ -18,6 +18,7 @@ def jwtauth(handler_class):
         def require_auth(handler, kwargs):
 
             auth = handler.request.headers.get('Authorization')
+            print auth
             if auth:
                 parts = auth.split()
 

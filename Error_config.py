@@ -11,4 +11,4 @@ Errortypes = {
     20002: "Username or Password is Wrong!",
     10410: "Missing argument '%s'"
     }
-Valid_Ip = ['127.0.0.1']
+Valid_Ip = ['127.0.0.1',"::1"]

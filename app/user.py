@@ -3,7 +3,7 @@ import tornado.web
 import jwt
 import datetime
 import hashlib
-from Handler import Handler, ApiHTTPError
+from Handler import BaseHandler, ApiHTTPError
 from tornado import gen
 from tornado.escape import json_decode, json_encode
 
@@ -14,7 +14,7 @@ SECRET = 'my_secret_key'
 '''
 
 
-class AuthHandler(Handler):
+class AuthHandler(BaseHandler):
 
     # def prepare(self):
     #     # print self.get_json_argument('username')
@@ -60,7 +60,7 @@ add new user
 """
 
 
-class AddUser(Handler):
+class AddUser(BaseHandler):
     """docstring for AddUser"""
 
     @gen.coroutine
