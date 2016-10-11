@@ -33,6 +33,7 @@ class VerificationUrl(BaseHandler):
         result = self.dbspy.rule.find({}).sort([("keywords",-1)])
         self.UrlRule = list(result)
         VerifyUrl = self.get_argument('url',None)
+        print VerifyUrl
         data = []
         self._data = {}
         client = tornado.httpclient.AsyncHTTPClient()
@@ -47,5 +48,5 @@ class VerificationUrl(BaseHandler):
         self._data = {'data': data}
 
     # @gen.coroutine
-    def POST(self):
+    def GET(self):
         pass
