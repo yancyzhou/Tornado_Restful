@@ -6,6 +6,7 @@ from utils import *
 from tornado.options import define, options
 import pymongo
 import click
+import MySQLdb
 # @click.group(invoke_without_command=True)
 @click.command()
 @click.option('--port', default=Webservers_port, help='webui port')
@@ -27,8 +28,12 @@ class Application(tornado.web.Application):
         settings = Settings
         client = motor.motor_tornado.MotorClient(DB, Port)
         clientpy = pymongo.Connection(DB, Port)
+        self.conn = MySQLdb.connect(host=mysqlconfig['host'], user=mysqlconfig['user'], passwd=mysqlconfig['passwd'], db=mysqlconfig['dbname'], port=mysqlconfig['port'], charset=mysqlconfig['charset'])
+        self.conn_ru = MySQLdb.connect(host=mysqlconfig['host'], user=mysqlconfig['user'], passwd=mysqlconfig['passwd'], db='ru', port=mysqlconfig['port'], charset=mysqlconfig['charset'])
         self.db = client[Collections]
         self.dbpy = clientpy[Collections]
+        self.cur = self.conn.cursor(cursorclass=MySQLdb.cursors.DictCursor)
+        self.cur_ru = self.conn_ru.cursor(cursorclass=MySQLdb.cursors.DictCursor)
         web.Application.__init__(self, handlers, **settings)
 
 if __name__ == "__main__":

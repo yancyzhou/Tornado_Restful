@@ -141,6 +141,18 @@ class BaseHandler(RequestHandler):
     @property
     def dbspy(self):
         return self.application.dbpy
+    @property
+    def mdb_cur(self):
+        return self.application.cur
+    @property
+    def mdb_conn(self):
+        return self.application.conn
+    @property
+    def mdb_cur_ru(self):
+        return self.application.cur_ru
+    @property
+    def mdb_conn_ru(self):
+        return self.application.conn_ru
 
     def get_json_arguments(self, args, **kwargs):
         result = json_decode(self.request.body)

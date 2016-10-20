@@ -21,3 +21,11 @@ Settings = dict(
     ui_modules={},
     debug=True,
 )
+mysqlconfig = {
+    "host": "127.0.0.1",
+    "user": "root",
+    "passwd":"yancy@)!%",
+    "dbname":"business",
+    "port":3306,
+    "charset":"utf8"
+}

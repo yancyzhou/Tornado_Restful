@@ -11,5 +11,6 @@ Handlers = [
     (r'/api/delrule', DelRule),
     (r'/api/shodan', getshodan),
     (r'/api/VerificationUrl', VerificationUrl),
+    (r'/api/getmonth', getMonth),
     (r".*", NotFound),
 ]

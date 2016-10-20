@@ -122,3 +122,44 @@ class getshodan(BaseHandler):
 
     def GET(self):
         pass
+
+# @jwtauth
+class getMonth(BaseHandler):
+
+    @gen.coroutine
+    def get(self):
+        sql  = "SELECT DATE_FORMAT(exam_createtime,'%Y-%m') d, SUM(exam_paper_number) exam_paper_number,SUM(exam_student_number) exam_student_number,SUM(check_score_number_pay) check_score_number_pay,SUM(check_score_number) check_score_number FROM exam_info WHERE 1 GROUP BY d ORDER BY d DESC"
+        self.mdb_cur.execute(sql)
+        result = self.mdb_cur.fetchall()
+        res = []
+        for item in result:
+            data = {}
+            sqlschool = "SELECT COUNT(DISTINCT(exam_school_guid)) nums FROM exam_info WHERE exam_createtime LIKE '"+item['d']+"%'"
+            self.mdb_cur.execute(sqlschool)
+            results = self.mdb_cur.fetchall()
+            sql_userstudent = "SELECT count(1) nums FROM ru_userstudent s WHERE  s.RU_Userstudent_code in (SELECT RU_User_code FROM ru_user WHERE 1 AND RU_User_createdTime LIKE '"+item['d']+"%')"
+            self.mdb_cur.execute(sql_userstudent)
+            result_userstudent = self.mdb_cur.fetchall()
+            sql_examcount = "SELECT count(DISTINCT(exam_id)) nums from exam_info WHERE exam_createtime LIKE '"+item['d']+"%'"
+            self.mdb_cur.execute(sql_examcount)
+            result_examcount = self.mdb_cur.fetchall()
+            sql_pay = "SELECT SUM(RU_Order_money) nums FROM ru_order where RU_Order_state=1 AND RU_Order_payTime LIKE '"+item['d']+"%'"
+            self.mdb_cur.execute(sql_pay)
+            result_pay = self.mdb_cur.fetchall()
+            data['月份'] = item['d']
+            data['考生数'] = int(item['exam_student_number'])
+            data['考试学校数'] = int(results[0]['nums'])
+            data['注册学生数'] = int(result_userstudent[0]['nums'])
+            data['考试数'] = int(result_examcount[0]['nums'])
+            data['收入'] = int(0 if result_pay[0]['nums']==None else result_pay[0]['nums'])
+            data['试卷数'] = int(item['exam_paper_number'])
+            data['查分人数'] = int(item['check_score_number'])
+            data['付费查分数'] = int(item['check_score_number_pay'])
+            res.append(data)
+        columnDefs = [{"name":"月份"}]
+        for items in data.keys():
+            name = {}
+            if items!='月份':
+                name['name'] = items
+                columnDefs.append(name)
+        self.writejson({"data": res, "columnDefs": columnDefs,'code': 1})
