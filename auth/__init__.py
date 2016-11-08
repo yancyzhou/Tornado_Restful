@@ -45,7 +45,7 @@ def jwtauth(handler_class):
                 except Exception, e:
                     handler._transforms = []
                     handler.set_status(200)
-                    handler.writejson({'message': e.message, 'code': 10416})
+                    handler.writejson({'code': 2,'message': e.message, 'data':[]})
                     handler.finish()
             else:
                 handler._transforms = []

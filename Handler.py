@@ -4,8 +4,11 @@ from Error_config import Errortypes, Valid_Ip
 from tornado.escape import json_decode, json_encode, to_unicode
 import os
 from tornado import gen
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session,sessionmaker
 
-
+import config
 def VerifyIP(handler_class):
     def wrap_execute(handler_execute):
         def Is_Valid_Ip(handler, kwargs):
@@ -75,8 +78,9 @@ class ApiHTTPError(Exception):
             self.log_message = log_message.replace('%', '%%')
 
     def __str__(self):
-        result = json_encode({'code': self.status_code, 'message': Errortypes[self.status_code]})
+        result = json_encode({'code': self.status_code, 'message': Errortypes[self.status_code],'data':[]})
         return result
+
 
 
 class BaseHandler(RequestHandler):
@@ -133,6 +137,19 @@ class BaseHandler(RequestHandler):
             resp['res'].update(self._data)
 
         self.writejson(self._data)
+
+
+
+    def string(self,s):
+        self.s = s
+
+    @property
+    def totest(self):
+        if int(self.s[-1]) in (0,2,4,6,8):
+            self.application.s = 1
+            return self.application.db
+        else:
+            print 2222
 
     @property
     def dbs(self):
